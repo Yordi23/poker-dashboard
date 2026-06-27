@@ -99,6 +99,25 @@
 				font-weight: 700;
 				margin-top: 6px;
 			}
+			.stat .big.gold {
+				color: var(--gold);
+			}
+			.records {
+				text-align: center;
+				color: var(--muted);
+				font-size: 13px;
+				margin: 4px 0 0;
+			}
+			.records b {
+				color: var(--ink);
+				font-weight: 600;
+			}
+			.records .up {
+				color: var(--win);
+			}
+			.records .down {
+				color: var(--loss);
+			}
 			.stat .who {
 				color: var(--gold);
 				font-size: 15px;
@@ -417,6 +436,8 @@
 				<div id="sessions"></div>
 			</div>
 
+			<p class="records" id="records"></p>
+
 			<p class="foot">
 				Auto-refreshes from your Google Sheet. Last updated
 				<span id="updated"></span>.
@@ -614,6 +635,7 @@
 				buildLeaderboard(filtered);
 				buildCumulative(filtered);
 				buildSessions(allEntries);
+				buildRecords(filtered);
 
 				document.getElementById('subtitle').textContent = `${
 					new Set(filtered.map((e) => e.name)).size
@@ -646,6 +668,15 @@
 				list.forEach((p) => {
 					p.avg = p.net / p.sessions;
 					p.rows.sort((a, b) => a.t - b.t || a.session - b.session);
+					p.wins = p.rows.filter((r) => r.net > 0).length;
+					p.winRate = p.wins / p.sessions;
+					// current win streak: consecutive up-nights counting back from latest
+					let s = 0;
+					for (let i = p.rows.length - 1; i >= 0; i--) {
+						if (p.rows[i].net > 0) s++;
+						else break;
+					}
+					p.streak = s;
 				});
 
 				if (!list.length) {
@@ -660,24 +691,30 @@
 				const top = list[0],
 					bottom = list[list.length - 1];
 				const medals = ['🥇', '🥈', '🥉'];
+				const hot = list.reduce(
+					(b, p) => (p.streak > (b ? b.streak : 0) ? p : b),
+					null
+				);
+				const eligible = list.filter((p) => p.sessions >= 3);
+				const rock = eligible.length
+					? eligible.reduce((b, p) =>
+							p.winRate > b.winRate ||
+							(p.winRate === b.winRate && p.sessions > b.sessions)
+								? p
+								: b
+					  )
+					: null;
+				const pct = (x) => Math.round(x * 100) + '%';
 				document.getElementById('statCards').innerHTML = `
-    <div class="stat"><div class="label">Biggest winner</div><div class="who">${esc(
-					top.name
-				)}</div><div class="big pos">${signed(top.net)}</div></div>
-    <div class="stat"><div class="label">Biggest loser</div><div class="who">${esc(
-					bottom.name
-				)}</div><div class="big neg">${signed(bottom.net)}</div></div>
-    <div class="stat"><div class="label">Total players</div><div class="big">${
-					list.length
-				}</div></div>
-    <div class="stat"><div class="label">Pot in play / session</div><div class="big">${money(
-					BUY_IN
-				)} ea.</div></div>`;
+    <div class="stat"><div class="label">👑 Champion</div><div class="who">${esc(top.name)}</div><div class="big pos">${signed(top.net)}</div></div>
+    <div class="stat"><div class="label">💀 Biggest loser</div><div class="who">${esc(bottom.name)}</div><div class="big neg">${signed(bottom.net)}</div></div>
+    <div class="stat"><div class="label">🔥 Hot streak</div><div class="who">${hot && hot.streak > 0 ? esc(hot.name) : '—'}</div><div class="big gold">${hot && hot.streak > 0 ? hot.streak + (hot.streak === 1 ? ' win' : ' wins') : 'no streak'}</div></div>
+    <div class="stat"><div class="label">🪨 Most consistent</div><div class="who">${rock ? esc(rock.name) : '—'}</div><div class="big gold">${rock ? pct(rock.winRate) + ' win rate' : '3+ games needed'}</div></div>`;
 
 				// table
 				let html = `<table><thead><tr><th class="rank">#</th><th>Player</th>
-    <th>Form</th><th class="num">Sessions</th><th class="num">Avg / session</th>
-    <th class="num">Total ending</th><th class="num">Net profit</th></tr></thead><tbody>`;
+    <th>Form</th><th class="num">Sessions</th><th class="num">Win %</th><th class="num">Avg / session</th>
+    <th class="num">Net profit</th></tr></thead><tbody>`;
 				list.forEach((p, i) => {
 					html += `<tr><td class="rank">${
 						i < 3 ? '<span class="medal">' + medals[i] + '</span>' : i + 1
@@ -685,8 +722,8 @@
       <td>${esc(p.name)}</td>
       <td>${formHtml(p.rows)}</td>
       <td class="num">${p.sessions}</td>
+      <td class="num">${pct(p.winRate)}</td>
       <td class="num ${p.avg >= 0 ? 'pos' : 'neg'}">${signed(p.avg)}</td>
-      <td class="num">${money(p.end)}</td>
       <td class="num ${p.net >= 0 ? 'pos' : 'neg'}">${signed(
 						p.net
 					)}</td></tr>`;
@@ -862,6 +899,26 @@
 						.join('') +
 					'</span>'
 				);
+			}
+
+			/* All-time single-session records for the current view. */
+			function buildRecords(entries) {
+				const el = document.getElementById('records');
+				if (!entries.length) {
+					el.innerHTML = '';
+					return;
+				}
+				let best = entries[0],
+					worst = entries[0];
+				entries.forEach((e) => {
+					if (e.net > best.net) best = e;
+					if (e.net < worst.net) worst = e;
+				});
+				el.innerHTML =
+					`🏅 Records — Biggest win: <b>${esc(best.name)}</b> ` +
+					`<span class="up">${signed(best.net)}</span> (${esc(best.date)}) · ` +
+					`Biggest loss: <b>${esc(worst.name)}</b> ` +
+					`<span class="down">${signed(worst.net)}</span> (${esc(worst.date)})`;
 			}
 
 			/* "Last session" recap banner — the most recent (date, session),
