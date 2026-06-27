@@ -245,6 +245,59 @@
 					grid-template-columns: 1fr;
 				}
 			}
+			#recap:empty {
+				display: none;
+			}
+			.recap-inner {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				gap: 8px 18px;
+				background: linear-gradient(90deg, #11463485, #0c352766);
+				border: 1px solid #ffffff1f;
+				border-left: 3px solid var(--gold);
+				border-radius: 12px;
+				padding: 12px 16px;
+				margin: 0 0 18px;
+				font-size: 14px;
+			}
+			.recap-label {
+				color: var(--gold);
+				font-weight: 700;
+				text-transform: uppercase;
+				font-size: 12px;
+				letter-spacing: 0.8px;
+			}
+			.recap-meta {
+				color: var(--muted);
+			}
+			.recap-win {
+				color: var(--win);
+				font-weight: 700;
+			}
+			.recap-loss {
+				color: var(--loss);
+				font-weight: 700;
+			}
+			.form {
+				display: inline-flex;
+				gap: 3px;
+			}
+			.fd {
+				width: 9px;
+				height: 9px;
+				border-radius: 50%;
+				display: inline-block;
+			}
+			.fd.win {
+				background: var(--win);
+			}
+			.fd.loss {
+				background: var(--loss);
+			}
+			.fd.flat {
+				background: #7d8b84;
+			}
 			.filterbar {
 				display: flex;
 				align-items: center;
@@ -328,6 +381,8 @@
 			</div>
 
 			<div id="error"></div>
+
+			<div id="recap"></div>
 
 			<div class="filterbar">
 				<span class="lbl">View</span>
@@ -555,6 +610,7 @@
 						? allEntries
 						: allEntries.filter((e) => MAIN_SET.has(e.name.toLowerCase()));
 
+				buildRecap(allEntries);
 				buildLeaderboard(filtered);
 				buildCumulative(filtered);
 				buildSessions(allEntries);
@@ -574,12 +630,23 @@
 						sessions: 0,
 						end: 0,
 						net: 0,
+						rows: [],
 					};
 					by[e.name].sessions++;
 					by[e.name].end += e.end;
 					by[e.name].net += e.net;
+					by[e.name].rows.push({
+						t: e.t,
+						session: e.session,
+						net: e.net,
+						label: e.date + ' S' + e.session,
+					});
 				});
 				const list = Object.values(by).sort((a, b) => b.net - a.net);
+				list.forEach((p) => {
+					p.avg = p.net / p.sessions;
+					p.rows.sort((a, b) => a.t - b.t || a.session - b.session);
+				});
 
 				if (!list.length) {
 					document.getElementById('statCards').innerHTML = '';
@@ -609,12 +676,16 @@
 
 				// table
 				let html = `<table><thead><tr><th class="rank">#</th><th>Player</th>
-    <th class="num">Sessions</th><th class="num">Total ending</th><th class="num">Net profit</th></tr></thead><tbody>`;
+    <th>Form</th><th class="num">Sessions</th><th class="num">Avg / session</th>
+    <th class="num">Total ending</th><th class="num">Net profit</th></tr></thead><tbody>`;
 				list.forEach((p, i) => {
 					html += `<tr><td class="rank">${
 						i < 3 ? '<span class="medal">' + medals[i] + '</span>' : i + 1
 					}</td>
-      <td>${esc(p.name)}</td><td class="num">${p.sessions}</td>
+      <td>${esc(p.name)}</td>
+      <td>${formHtml(p.rows)}</td>
+      <td class="num">${p.sessions}</td>
+      <td class="num ${p.avg >= 0 ? 'pos' : 'neg'}">${signed(p.avg)}</td>
       <td class="num">${money(p.end)}</td>
       <td class="num ${p.net >= 0 ? 'pos' : 'neg'}">${signed(
 						p.net
@@ -773,6 +844,64 @@
 						},
 					},
 				});
+			}
+
+			/* Last-5-sessions form: green = up night, red = down, grey = even. */
+			function formHtml(rows) {
+				const last5 = rows.slice(-5);
+				return (
+					'<span class="form">' +
+					last5
+						.map((r) => {
+							const cls =
+								r.net > 0 ? 'fd win' : r.net < 0 ? 'fd loss' : 'fd flat';
+							return `<span class="${cls}" title="${esc(r.label)}: ${signed(
+								r.net
+							)}"></span>`;
+						})
+						.join('') +
+					'</span>'
+				);
+			}
+
+			/* "Last session" recap banner — the most recent (date, session),
+			   using ALL players (it's a factual snapshot of that night). */
+			function buildRecap(entries) {
+				const el = document.getElementById('recap');
+				if (!entries.length) {
+					el.innerHTML = '';
+					return;
+				}
+				let maxT = -Infinity,
+					maxS = -Infinity;
+				entries.forEach((e) => {
+					if (e.t > maxT || (e.t === maxT && e.session > maxS)) {
+						maxT = e.t;
+						maxS = e.session;
+					}
+				});
+				const last = entries.filter(
+					(e) => e.t === maxT && e.session === maxS
+				);
+				const sorted = [...last].sort((a, b) => b.net - a.net);
+				const w = sorted[0],
+					l = sorted[sorted.length - 1];
+				const d = new Date(maxT);
+				const dateLabel = isNaN(d.getTime())
+					? last[0].date
+					: d.toLocaleDateString('en-US', {
+							weekday: 'short',
+							month: 'short',
+							day: 'numeric',
+					  });
+				el.innerHTML = `<div class="recap-inner">
+          <span class="recap-label">🃏 Last session</span>
+          <span class="recap-meta">${esc(dateLabel)} · Session ${
+					last[0].session
+				} · ${last.length} players</span>
+          <span class="recap-win">🏆 ${esc(w.name)} ${signed(w.net)}</span>
+          <span class="recap-loss">💀 ${esc(l.name)} ${signed(l.net)}</span>
+        </div>`;
 			}
 
 			function esc(s) {
