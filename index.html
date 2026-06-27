@@ -7,6 +7,7 @@
 			content="width=device-width, initial-scale=1"
 		/>
 		<title>Poker Night — Standings</title>
+		<link rel="icon" type="image/png" href="logo.png" />
 		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 		<style>
 			:root {
@@ -42,17 +43,36 @@
 				margin: 0 auto;
 				padding: 28px 18px 60px;
 			}
+			.brand {
+				display: flex;
+				align-items: center;
+				gap: 16px;
+				margin: 0 0 24px;
+			}
+			.brand .logo {
+				width: 56px;
+				height: 56px;
+				flex: 0 0 auto;
+				object-fit: contain;
+				filter: drop-shadow(0 3px 8px #0007);
+			}
+			.brand .logo.emoji {
+				font-size: 46px;
+				line-height: 1;
+				text-align: center;
+			}
 			h1 {
-				font-size: 28px;
-				margin: 0 0 4px;
+				font-size: 30px;
+				margin: 0;
 				letter-spacing: 0.5px;
+				font-weight: 800;
 			}
 			h1 .chip {
 				color: var(--gold);
 			}
 			.sub {
 				color: var(--muted);
-				margin: 0 0 24px;
+				margin: 3px 0 0;
 				font-size: 14px;
 			}
 			.cards {
@@ -175,12 +195,22 @@
 				.wrap {
 					padding: 18px 12px 44px;
 				}
+				.brand {
+					gap: 12px;
+					margin-bottom: 18px;
+				}
+				.brand .logo {
+					width: 44px;
+					height: 44px;
+				}
+				.brand .logo.emoji {
+					font-size: 38px;
+				}
 				h1 {
 					font-size: 22px;
 				}
 				.sub {
 					font-size: 13px;
-					margin-bottom: 18px;
 				}
 				.cards {
 					grid-template-columns: 1fr 1fr;
@@ -228,6 +258,10 @@
 				text-align: center;
 				margin-top: 20px;
 			}
+			.credit {
+				opacity: 0.6;
+				font-size: 11px;
+			}
 			a {
 				color: var(--gold);
 			}
@@ -238,8 +272,19 @@
 	</head>
 	<body>
 		<div class="wrap">
-			<h1>🃏 Poker Night <span class="chip">Standings</span></h1>
-			<p class="sub" id="subtitle">Loading live results…</p>
+			<div class="brand">
+				<img
+					class="logo"
+					src="logo.png"
+					alt="Poker Night logo"
+					onerror="this.remove();var f=document.getElementById('logoFallback');if(f)f.style.display='inline-block';"
+				/>
+				<span class="logo emoji" id="logoFallback" style="display: none">🃏</span>
+				<div>
+					<h1>Poker Night <span class="chip">Standings</span></h1>
+					<p class="sub" id="subtitle">Loading live results…</p>
+				</div>
+			</div>
 
 			<div id="error"></div>
 
@@ -269,6 +314,16 @@
 			<p class="foot">
 				Auto-refreshes from your Google Sheet. Last updated
 				<span id="updated"></span>.
+				<br />
+				<span class="credit">
+					<a
+						href="https://www.flaticon.com/free-icons/poker"
+						title="poker icons"
+						target="_blank"
+						rel="noopener"
+						>Poker icons created by Freepik - Flaticon</a
+					>
+				</span>
 			</p>
 		</div>
 
