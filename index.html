@@ -245,6 +245,47 @@
 					grid-template-columns: 1fr;
 				}
 			}
+			.filterbar {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				margin: 0 0 18px;
+				flex-wrap: wrap;
+			}
+			.filterbar .lbl {
+				color: var(--muted);
+				font-size: 12px;
+				text-transform: uppercase;
+				letter-spacing: 0.8px;
+			}
+			.seg {
+				display: inline-flex;
+				background: #0c3527;
+				border: 1px solid #ffffff1f;
+				border-radius: 10px;
+				padding: 3px;
+				gap: 3px;
+			}
+			.seg button {
+				appearance: none;
+				border: 0;
+				background: transparent;
+				color: var(--muted);
+				font: inherit;
+				font-size: 13px;
+				font-weight: 600;
+				padding: 7px 14px;
+				border-radius: 8px;
+				cursor: pointer;
+				transition: background 0.15s, color 0.15s;
+			}
+			.seg button:hover {
+				color: var(--ink);
+			}
+			.seg button.active {
+				background: var(--gold);
+				color: #1a1205;
+			}
 			.err {
 				background: #5a1d1d;
 				border: 1px solid #e06c75;
@@ -287,6 +328,16 @@
 			</div>
 
 			<div id="error"></div>
+
+			<div class="filterbar">
+				<span class="lbl">View</span>
+				<div class="seg" id="viewSeg">
+					<button type="button" data-mode="main" class="active">
+						Main group
+					</button>
+					<button type="button" data-mode="all">Everyone</button>
+				</div>
+			</div>
 
 			<div class="cards" id="statCards"></div>
 
@@ -336,6 +387,22 @@
 			const BUY_IN = 975; // must match the Config tab in your sheet
 			const RESPONSES_SHEET = 'Form Responses 1';
 			const REFRESH_MS = 60000; // re-pull every 60s
+
+			// The regulars. Default view shows only these; "Everyone" shows all
+			// who have ever played (guests included). Case-insensitive match.
+			const MAIN_PLAYERS = [
+				'Abraham',
+				'Pedro',
+				'Victor',
+				'Yordi',
+				'Mundi',
+				'Ignacio',
+				'Daniel',
+			];
+			const MAIN_SET = new Set(MAIN_PLAYERS.map((n) => n.toLowerCase()));
+
+			let viewMode = 'main'; // 'main' | 'all'
+			let allEntries = []; // every parsed row, kept so the toggle is instant
 
 			const money = (n) =>
 				(n < 0 ? '-$' : '$') +
@@ -470,18 +537,33 @@
 					})
 					.filter((e) => !isNaN(e.end));
 
-				buildLeaderboard(entries);
-				buildSessions(entries);
-				buildCumulative(entries);
+				allEntries = entries;
+				render();
 
-				document.getElementById('subtitle').textContent = `${
-					new Set(entries.map((e) => e.name)).size
-				} players · ${
-					new Set(entries.map((e) => e.skey)).size
-				} sessions · buy-in ${money(BUY_IN)}`;
 				document.getElementById('updated').textContent =
 					new Date().toLocaleTimeString();
 				document.getElementById('error').innerHTML = '';
+			}
+
+			/* Applies the Main-group/Everyone filter and (re)draws everything
+			   that depends on it. Re-runs instantly on toggle — no refetch.
+			   The session-check panel always uses ALL players so the
+			   buy-in × players balance stays correct. */
+			function render() {
+				const filtered =
+					viewMode === 'all'
+						? allEntries
+						: allEntries.filter((e) => MAIN_SET.has(e.name.toLowerCase()));
+
+				buildLeaderboard(filtered);
+				buildCumulative(filtered);
+				buildSessions(allEntries);
+
+				document.getElementById('subtitle').textContent = `${
+					new Set(filtered.map((e) => e.name)).size
+				} players · ${
+					new Set(allEntries.map((e) => e.skey)).size
+				} sessions · buy-in ${money(BUY_IN)}`;
 			}
 
 			function buildLeaderboard(entries) {
@@ -498,6 +580,14 @@
 					by[e.name].net += e.net;
 				});
 				const list = Object.values(by).sort((a, b) => b.net - a.net);
+
+				if (!list.length) {
+					document.getElementById('statCards').innerHTML = '';
+					document.getElementById('leaderboard').innerHTML =
+						'<p style="color:var(--muted)">No players in this view yet.</p>';
+					drawBar([]);
+					return;
+				}
 
 				// stat cards
 				const top = list[0],
@@ -696,6 +786,19 @@
 					'error'
 				).innerHTML = `<div class="err">${html}</div>`;
 			}
+
+			// View toggle (Main group / Everyone) — re-renders from cached data.
+			document
+				.getElementById('viewSeg')
+				.addEventListener('click', (e) => {
+					const btn = e.target.closest('button');
+					if (!btn) return;
+					viewMode = btn.dataset.mode;
+					e.currentTarget
+						.querySelectorAll('button')
+						.forEach((b) => b.classList.toggle('active', b === btn));
+					if (allEntries.length) render();
+				});
 
 			load();
 			setInterval(load, REFRESH_MS);
