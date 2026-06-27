@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1"
+		/>
+		<title>Poker Night — Standings</title>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+		<style>
+			:root {
+				--felt: #0b3d2e;
+				--felt2: #0e4a37;
+				--gold: #e8c372;
+				--win: #3fb27f;
+				--loss: #e06c75;
+				--ink: #f4f1e8;
+				--muted: #a9b8b0;
+				--card: #10433370;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				margin: 0;
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+					sans-serif;
+				color: var(--ink);
+				background: radial-gradient(
+					120% 120% at 50% 0%,
+					var(--felt2),
+					var(--felt) 60%,
+					#072117
+				);
+				min-height: 100vh;
+			}
+			.wrap {
+				max-width: 1100px;
+				margin: 0 auto;
+				padding: 28px 18px 60px;
+			}
+			h1 {
+				font-size: 28px;
+				margin: 0 0 4px;
+				letter-spacing: 0.5px;
+			}
+			h1 .chip {
+				color: var(--gold);
+			}
+			.sub {
+				color: var(--muted);
+				margin: 0 0 24px;
+				font-size: 14px;
+			}
+			.cards {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+				gap: 14px;
+				margin-bottom: 26px;
+			}
+			.stat {
+				background: var(--card);
+				border: 1px solid #ffffff14;
+				border-radius: 14px;
+				padding: 16px 18px;
+				backdrop-filter: blur(3px);
+			}
+			.stat .label {
+				color: var(--muted);
+				font-size: 12px;
+				text-transform: uppercase;
+				letter-spacing: 0.8px;
+			}
+			.stat .big {
+				font-size: 24px;
+				font-weight: 700;
+				margin-top: 6px;
+			}
+			.stat .who {
+				color: var(--gold);
+				font-size: 15px;
+				margin-top: 2px;
+			}
+			.panel {
+				background: var(--card);
+				border: 1px solid #ffffff14;
+				border-radius: 14px;
+				padding: 18px;
+				margin-bottom: 22px;
+			}
+			.panel h2 {
+				font-size: 16px;
+				margin: 0 0 14px;
+				color: var(--gold);
+				letter-spacing: 0.4px;
+			}
+			table {
+				width: 100%;
+				border-collapse: collapse;
+				font-size: 14px;
+			}
+			th,
+			td {
+				text-align: left;
+				padding: 9px 10px;
+				border-bottom: 1px solid #ffffff12;
+			}
+			th {
+				color: var(--muted);
+				font-weight: 600;
+				font-size: 12px;
+				text-transform: uppercase;
+				letter-spacing: 0.6px;
+			}
+			td.num,
+			th.num {
+				text-align: right;
+				font-variant-numeric: tabular-nums;
+			}
+			.rank {
+				color: var(--gold);
+				font-weight: 700;
+				width: 34px;
+			}
+			.pos {
+				color: var(--win);
+				font-weight: 700;
+			}
+			.neg {
+				color: var(--loss);
+				font-weight: 700;
+			}
+			.ok {
+				color: var(--win);
+			}
+			.off {
+				color: var(--loss);
+				font-weight: 700;
+			}
+			.chartbox {
+				position: relative;
+				height: 320px;
+			}
+			.grid2 {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 22px;
+			}
+			@media (max-width: 760px) {
+				.grid2 {
+					grid-template-columns: 1fr;
+				}
+			}
+			.err {
+				background: #5a1d1d;
+				border: 1px solid #e06c75;
+				color: #ffd7d7;
+				padding: 14px;
+				border-radius: 10px;
+			}
+			.foot {
+				color: var(--muted);
+				font-size: 12px;
+				text-align: center;
+				margin-top: 20px;
+			}
+			a {
+				color: var(--gold);
+			}
+			.medal {
+				margin-right: 4px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="wrap">
+			<h1>🃏 Poker Night <span class="chip">Standings</span></h1>
+			<p class="sub" id="subtitle">Loading live results…</p>
+
+			<div id="error"></div>
+
+			<div class="cards" id="statCards"></div>
+
+			<div class="panel">
+				<h2>Leaderboard — all-time net</h2>
+				<div id="leaderboard"></div>
+			</div>
+
+			<div class="grid2">
+				<div class="panel">
+					<h2>Net profit by player</h2>
+					<div class="chartbox"><canvas id="netChart"></canvas></div>
+				</div>
+				<div class="panel">
+					<h2>Cumulative standings over time</h2>
+					<div class="chartbox"><canvas id="cumChart"></canvas></div>
+				</div>
+			</div>
+
+			<div class="panel">
+				<h2>Session check — totals must equal buy-in × players</h2>
+				<div id="sessions"></div>
+			</div>
+
+			<p class="foot">
+				Auto-refreshes from your Google Sheet. Last updated
+				<span id="updated"></span>.
+			</p>
+		</div>
+
+		<script>
+			/* ============================================================
+   CONFIG — paste your spreadsheet ID here (the script logs it).
+   ============================================================ */
+			const SPREADSHEET_ID =
+				'1sdli0MIdzyLiwStvG1soNHKoFrf4xspQl_MUw6_8BJs';
+			const BUY_IN = 975; // must match the Config tab in your sheet
+			const RESPONSES_SHEET = 'Form Responses 1';
+			const REFRESH_MS = 60000; // re-pull every 60s
+
+			const money = (n) =>
+				(n < 0 ? '-$' : '$') +
+				Math.abs(n).toLocaleString('en-US', {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2,
+				});
+			const signed = (n) => (n > 0 ? '+' : '') + money(n);
+
+			function csvUrl(sheet) {
+				return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(
+					sheet
+				)}`;
+			}
+
+			/* Minimal CSV parser that respects quoted fields. */
+			function parseCSV(text) {
+				const rows = [];
+				let row = [],
+					field = '',
+					q = false;
+				for (let i = 0; i < text.length; i++) {
+					const c = text[i];
+					if (q) {
+						if (c === '"') {
+							if (text[i + 1] === '"') {
+								field += '"';
+								i++;
+							} else q = false;
+						} else field += c;
+					} else {
+						if (c === '"') q = true;
+						else if (c === ',') {
+							row.push(field);
+							field = '';
+						} else if (c === '\n') {
+							row.push(field);
+							rows.push(row);
+							row = [];
+							field = '';
+						} else if (c === '\r') {
+						} else field += c;
+					}
+				}
+				if (field.length || row.length) {
+					row.push(field);
+					rows.push(row);
+				}
+				return rows;
+			}
+
+			function toNumber(s) {
+				if (s == null) return NaN;
+				const n = parseFloat(String(s).replace(/[^0-9.\-]/g, ''));
+				return isNaN(n) ? NaN : n;
+			}
+
+			/* gviz date cells sometimes arrive as Date(yyyy,m,d) — normalize to a key+sortable. */
+			function normalizeDate(raw) {
+				if (!raw) return { key: '', t: 0 };
+				const m = String(raw).match(/Date\((\d+),(\d+),(\d+)/);
+				if (m) {
+					const d = new Date(+m[1], +m[2], +m[3]);
+					return { key: d.toLocaleDateString('en-US'), t: d.getTime() };
+				}
+				const t = Date.parse(raw);
+				return { key: String(raw).trim(), t: isNaN(t) ? 0 : t };
+			}
+
+			const palette = [
+				'#e8c372',
+				'#3fb27f',
+				'#5aa9e6',
+				'#e06c75',
+				'#c39bd3',
+				'#f5a35c',
+				'#7ed6c1',
+				'#d6c97e',
+				'#9ec1ff',
+				'#ff9bb3',
+			];
+
+			async function load() {
+				if (SPREADSHEET_ID === 'PASTE_YOUR_SPREADSHEET_ID_HERE') {
+					showError(
+						'Set <code>SPREADSHEET_ID</code> at the top of dashboard.html (the setup script logs it).'
+					);
+					return;
+				}
+				let rows;
+				try {
+					const res = await fetch(csvUrl(RESPONSES_SHEET), {
+						cache: 'no-store',
+					});
+					if (!res.ok) throw new Error('HTTP ' + res.status);
+					rows = parseCSV(await res.text());
+				} catch (e) {
+					showError(
+						"Couldn't read the sheet. Make sure it's shared as <b>Anyone with the link → Viewer</b>, the ID is correct, and the tab is named <code>" +
+							RESPONSES_SHEET +
+							'</code>.<br><small>' +
+							e.message +
+							'</small>'
+					);
+					return;
+				}
+
+				// Drop header row. Columns: 0=Timestamp,1=Game date,2=Session #,3=Name,4=Ending amount
+				const data = rows
+					.slice(1)
+					.filter((r) => r.length >= 5 && r[3] && r[3].trim());
+				if (!data.length) {
+					showError(
+						'No responses yet — submit a session through the form and refresh.'
+					);
+					return;
+				}
+
+				const entries = data
+					.map((r) => {
+						const d = normalizeDate(r[1]);
+						const sess = toNumber(r[2]);
+						return {
+							date: d.key,
+							t: d.t,
+							session: isNaN(sess) ? 1 : sess,
+							skey: d.key + ' #' + (isNaN(sess) ? 1 : sess),
+							name: r[3].trim(),
+							end: toNumber(r[4]),
+							net: toNumber(r[4]) - BUY_IN,
+						};
+					})
+					.filter((e) => !isNaN(e.end));
+
+				buildLeaderboard(entries);
+				buildSessions(entries);
+				buildCumulative(entries);
+
+				document.getElementById('subtitle').textContent = `${
+					new Set(entries.map((e) => e.name)).size
+				} players · ${
+					new Set(entries.map((e) => e.skey)).size
+				} sessions · buy-in ${money(BUY_IN)}`;
+				document.getElementById('updated').textContent =
+					new Date().toLocaleTimeString();
+				document.getElementById('error').innerHTML = '';
+			}
+
+			function buildLeaderboard(entries) {
+				const by = {};
+				entries.forEach((e) => {
+					by[e.name] = by[e.name] || {
+						name: e.name,
+						sessions: 0,
+						end: 0,
+						net: 0,
+					};
+					by[e.name].sessions++;
+					by[e.name].end += e.end;
+					by[e.name].net += e.net;
+				});
+				const list = Object.values(by).sort((a, b) => b.net - a.net);
+
+				// stat cards
+				const top = list[0],
+					bottom = list[list.length - 1];
+				const medals = ['🥇', '🥈', '🥉'];
+				document.getElementById('statCards').innerHTML = `
+    <div class="stat"><div class="label">Biggest winner</div><div class="who">${esc(
+					top.name
+				)}</div><div class="big pos">${signed(top.net)}</div></div>
+    <div class="stat"><div class="label">Biggest loser</div><div class="who">${esc(
+					bottom.name
+				)}</div><div class="big neg">${signed(bottom.net)}</div></div>
+    <div class="stat"><div class="label">Total players</div><div class="big">${
+					list.length
+				}</div></div>
+    <div class="stat"><div class="label">Pot in play / session</div><div class="big">${money(
+					BUY_IN
+				)} ea.</div></div>`;
+
+				// table
+				let html = `<table><thead><tr><th class="rank">#</th><th>Player</th>
+    <th class="num">Sessions</th><th class="num">Total ending</th><th class="num">Net profit</th></tr></thead><tbody>`;
+				list.forEach((p, i) => {
+					html += `<tr><td class="rank">${
+						i < 3 ? '<span class="medal">' + medals[i] + '</span>' : i + 1
+					}</td>
+      <td>${esc(p.name)}</td><td class="num">${p.sessions}</td>
+      <td class="num">${money(p.end)}</td>
+      <td class="num ${p.net >= 0 ? 'pos' : 'neg'}">${signed(
+						p.net
+					)}</td></tr>`;
+				});
+				document.getElementById('leaderboard').innerHTML =
+					html + '</tbody></table>';
+
+				drawBar(list);
+			}
+
+			let netChart;
+			function drawBar(list) {
+				const ctx = document.getElementById('netChart');
+				if (netChart) netChart.destroy();
+				netChart = new Chart(ctx, {
+					type: 'bar',
+					data: {
+						labels: list.map((p) => p.name),
+						datasets: [
+							{
+								data: list.map((p) => p.net),
+								backgroundColor: list.map((p) =>
+									p.net >= 0 ? '#3fb27f' : '#e06c75'
+								),
+								borderRadius: 6,
+							},
+						],
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						plugins: {
+							legend: { display: false },
+							tooltip: { callbacks: { label: (c) => signed(c.raw) } },
+						},
+						scales: {
+							x: { ticks: { color: '#cfe0d8' }, grid: { display: false } },
+							y: {
+								ticks: { color: '#cfe0d8', callback: (v) => money(v) },
+								grid: { color: '#ffffff14' },
+							},
+						},
+					},
+				});
+			}
+
+			function buildSessions(entries) {
+				const by = {};
+				entries.forEach((e) => {
+					by[e.skey] = by[e.skey] || {
+						date: e.date,
+						t: e.t,
+						session: e.session,
+						players: 0,
+						total: 0,
+					};
+					by[e.skey].players++;
+					by[e.skey].total += e.end;
+				});
+				const list = Object.values(by).sort(
+					(a, b) => b.t - a.t || b.session - a.session
+				);
+				let html = `<table><thead><tr><th>Date</th><th class="num">Session</th><th class="num">Players</th>
+    <th class="num">Total ending</th><th class="num">Expected</th><th class="num">Diff</th><th>Status</th></tr></thead><tbody>`;
+				list.forEach((s) => {
+					const expected = s.players * BUY_IN,
+						diff = s.total - expected,
+						ok = Math.abs(diff) < 0.005;
+					html += `<tr><td>${esc(s.date)}</td><td class="num">${
+						s.session
+					}</td><td class="num">${s.players}</td>
+      <td class="num">${money(s.total)}</td><td class="num">${money(
+						expected
+					)}</td>
+      <td class="num ${ok ? '' : 'off'}">${
+						ok ? '—' : signed(diff)
+					}</td>
+      <td class="${ok ? 'ok' : 'off'}">${
+						ok ? '✅ OK' : '⚠️ Off — check inputs'
+					}</td></tr>`;
+				});
+				document.getElementById('sessions').innerHTML =
+					html + '</tbody></table>';
+			}
+
+			let cumChart;
+			function buildCumulative(entries) {
+				// Ordered list of unique sessions (date, then session #).
+				const seen = {};
+				entries.forEach((e) => {
+					if (!seen[e.skey])
+						seen[e.skey] = { skey: e.skey, t: e.t, session: e.session };
+				});
+				const order = Object.values(seen).sort(
+					(a, b) => a.t - b.t || a.session - b.session
+				);
+				const keys = order.map((s) => s.skey);
+				const labels = order.map((s) => {
+					const d = new Date(s.t);
+					const dl = isNaN(d.getTime())
+						? s.skey.split(' #')[0]
+						: d.getMonth() + 1 + '/' + d.getDate();
+					return dl + ' S' + s.session;
+				});
+
+				const players = [...new Set(entries.map((e) => e.name))];
+				const running = {};
+				players.forEach((p) => (running[p] = 0));
+
+				const datasets = players.map((p, i) => {
+					const pts = keys.map((k) => {
+						const e = entries.find((x) => x.name === p && x.skey === k);
+						if (e) running[p] += e.net;
+						return running[p];
+					});
+					const col = palette[i % palette.length];
+					return {
+						label: p,
+						data: pts,
+						borderColor: col,
+						backgroundColor: col,
+						tension: 0.25,
+						pointRadius: 3,
+						borderWidth: 2,
+						fill: false,
+					};
+				});
+
+				const ctx = document.getElementById('cumChart');
+				if (cumChart) cumChart.destroy();
+				cumChart = new Chart(ctx, {
+					type: 'line',
+					data: { labels, datasets },
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						interaction: { mode: 'nearest', intersect: false },
+						plugins: {
+							legend: { labels: { color: '#cfe0d8', boxWidth: 12 } },
+							tooltip: {
+								callbacks: {
+									label: (c) => `${c.dataset.label}: ${signed(c.raw)}`,
+								},
+							},
+						},
+						scales: {
+							x: {
+								ticks: { color: '#cfe0d8' },
+								grid: { color: '#ffffff10' },
+							},
+							y: {
+								ticks: { color: '#cfe0d8', callback: (v) => money(v) },
+								grid: { color: '#ffffff14' },
+							},
+						},
+					},
+				});
+			}
+
+			function esc(s) {
+				return String(s).replace(
+					/[&<>]/g,
+					(c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])
+				);
+			}
+			function showError(html) {
+				document.getElementById(
+					'error'
+				).innerHTML = `<div class="err">${html}</div>`;
+			}
+
+			load();
+			setInterval(load, REFRESH_MS);
+		</script>
+	</body>
+</html>
