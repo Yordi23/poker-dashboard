@@ -8,352 +8,116 @@
 		/>
 		<title>Poker Night — Standings</title>
 		<link rel="icon" type="image/png" href="logo.png" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 		<style>
 			:root {
-				--felt: #0b3d2e;
-				--felt2: #0e4a37;
-				--gold: #e8c372;
-				--win: #3fb27f;
-				--loss: #e06c75;
-				--ink: #f4f1e8;
-				--muted: #a9b8b0;
-				--card: #10433370;
+				--ink: #e6ede9;
+				--muted: #86a298;
+				--dim: #6f8a80;
+				--teal: #56c9a6;
+				--green: #5fcf9e;
+				--coral: #e0928b;
+				--gold: #e0a96d;
+				--surface: rgba(255, 255, 255, 0.025);
+				--border: rgba(255, 255, 255, 0.08);
+				--border2: rgba(255, 255, 255, 0.13);
+				--sans: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+				--mono: 'JetBrains Mono', ui-monospace, monospace;
 			}
 			* {
 				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
 			}
 			body {
-				margin: 0;
-				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-					sans-serif;
+				font-family: var(--sans);
 				color: var(--ink);
-				background: radial-gradient(
-					120% 120% at 50% 0%,
-					var(--felt2),
-					var(--felt) 60%,
-					#072117
+				background: linear-gradient(
+					180deg,
+					#0d3a2e 0%,
+					#0a3027 30%,
+					#082822 100%
 				);
+				background-attachment: fixed;
 				min-height: 100vh;
 				overflow-x: hidden;
 				-webkit-text-size-adjust: 100%;
+				-webkit-font-smoothing: antialiased;
 			}
 			.wrap {
-				max-width: 1100px;
+				max-width: 1080px;
 				margin: 0 auto;
-				padding: 28px 18px 60px;
+				padding: 30px 20px 64px;
 			}
+			.ic {
+				width: 16px;
+				height: 16px;
+				display: inline-block;
+				vertical-align: -0.18em;
+				flex: none;
+			}
+
+			/* header */
 			.brand {
 				display: flex;
 				align-items: center;
 				gap: 16px;
-				margin: 0 0 24px;
+				margin: 0 0 26px;
 				flex-wrap: wrap;
+			}
+			.brand .logo {
+				width: 52px;
+				height: 52px;
+				flex: 0 0 auto;
+				object-fit: contain;
+				border-radius: 12px;
+			}
+			.brand .logo.emoji .ic {
+				width: 42px;
+				height: 42px;
+				color: var(--teal);
+			}
+			h1 {
+				font-size: 30px;
+				font-weight: 800;
+				letter-spacing: -0.01em;
+				line-height: 1.1;
+			}
+			h1 .chip {
+				color: var(--teal);
+			}
+			.sub {
+				font-family: var(--mono);
+				color: var(--muted);
+				font-size: 12.5px;
+				margin-top: 6px;
+				letter-spacing: 0.01em;
 			}
 			.langseg {
 				margin-left: auto;
 			}
-			.langseg button {
-				padding: 5px 11px;
-				font-size: 12px;
-			}
-			.brand .logo {
-				width: 56px;
-				height: 56px;
-				flex: 0 0 auto;
-				object-fit: contain;
-				filter: drop-shadow(0 3px 8px #0007);
-			}
-			.brand .logo.emoji {
-				font-size: 46px;
-				line-height: 1;
-				text-align: center;
-			}
-			h1 {
-				font-size: 30px;
-				margin: 0;
-				letter-spacing: 0.5px;
-				font-weight: 800;
-			}
-			h1 .chip {
-				color: var(--gold);
-			}
-			.sub {
-				color: var(--muted);
-				margin: 3px 0 0;
-				font-size: 14px;
-			}
-			.cards {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-				gap: 14px;
-				margin-bottom: 26px;
-			}
-			.stat {
-				background: var(--card);
-				border: 1px solid #ffffff14;
-				border-radius: 14px;
-				padding: 16px 18px;
-				backdrop-filter: blur(3px);
-			}
-			.stat .label {
-				color: var(--muted);
-				font-size: 12px;
-				text-transform: uppercase;
-				letter-spacing: 0.8px;
-			}
-			.stat .big {
-				font-size: 24px;
-				font-weight: 700;
-				margin-top: 6px;
-			}
-			.stat .big.gold {
-				color: var(--gold);
-			}
-			.records {
-				text-align: center;
-				color: var(--muted);
-				font-size: 13px;
-				margin: 4px 0 0;
-			}
-			.records b {
-				color: var(--ink);
-				font-weight: 600;
-			}
-			.records .up {
-				color: var(--win);
-			}
-			.records .down {
-				color: var(--loss);
-			}
-			.stat .who {
-				color: var(--gold);
-				font-size: 15px;
-				margin-top: 2px;
-			}
-			.panel {
-				background: var(--card);
-				border: 1px solid #ffffff14;
-				border-radius: 14px;
-				padding: 18px;
-				margin-bottom: 22px;
-			}
-			.panel h2 {
-				font-size: 16px;
-				margin: 0 0 14px;
-				color: var(--gold);
-				letter-spacing: 0.4px;
-			}
-			/* Tables can be wider than a phone; let each one scroll on its own. */
-			#leaderboard,
-			#sessions {
-				overflow-x: auto;
-				-webkit-overflow-scrolling: touch;
-				scrollbar-width: thin;
-			}
-			#leaderboard::-webkit-scrollbar,
-			#sessions::-webkit-scrollbar {
-				height: 6px;
-			}
-			#leaderboard::-webkit-scrollbar-thumb,
-			#sessions::-webkit-scrollbar-thumb {
-				background: #ffffff2e;
-				border-radius: 6px;
-			}
-			table {
-				width: 100%;
-				border-collapse: collapse;
-				font-size: 14px;
-			}
-			th,
-			td {
-				text-align: left;
-				padding: 9px 10px;
-				border-bottom: 1px solid #ffffff12;
-				white-space: nowrap;
-			}
-			th {
-				color: var(--muted);
-				font-weight: 600;
-				font-size: 12px;
-				text-transform: uppercase;
-				letter-spacing: 0.6px;
-			}
-			td.num,
-			th.num {
-				text-align: right;
-				font-variant-numeric: tabular-nums;
-			}
-			.rank {
-				color: var(--gold);
-				font-weight: 700;
-				width: 34px;
-			}
-			.pos {
-				color: var(--win);
-				font-weight: 700;
-			}
-			.neg {
-				color: var(--loss);
-				font-weight: 700;
-			}
-			.ok {
-				color: var(--win);
-			}
-			.off {
-				color: var(--loss);
-				font-weight: 700;
-			}
-			.chartbox {
-				position: relative;
-				height: 320px;
-			}
-			.grid2 {
-				display: grid;
-				grid-template-columns: 1fr 1fr;
-				gap: 22px;
-			}
-			@media (max-width: 760px) {
-				.grid2 {
-					grid-template-columns: 1fr;
-				}
-			}
-			@media (max-width: 600px) {
-				.wrap {
-					padding: 18px 12px 44px;
-				}
-				.brand {
-					gap: 12px;
-					margin-bottom: 18px;
-				}
-				.brand .logo {
-					width: 44px;
-					height: 44px;
-				}
-				.brand .logo.emoji {
-					font-size: 38px;
-				}
-				h1 {
-					font-size: 22px;
-				}
-				.sub {
-					font-size: 13px;
-				}
-				.cards {
-					grid-template-columns: 1fr 1fr;
-					gap: 10px;
-				}
-				.stat {
-					padding: 12px 13px;
-				}
-				.stat .big {
-					font-size: 20px;
-				}
-				.stat .who {
-					font-size: 14px;
-				}
-				.panel {
-					padding: 14px 12px;
-					margin-bottom: 16px;
-				}
-				.chartbox {
-					height: 260px;
-				}
-				table {
-					font-size: 13px;
-				}
-				th,
-				td {
-					padding: 8px 9px;
-				}
-			}
-			@media (max-width: 380px) {
-				.cards {
-					grid-template-columns: 1fr;
-				}
-			}
-			#recap:empty {
-				display: none;
-			}
-			.recap-inner {
-				display: flex;
-				flex-wrap: wrap;
-				align-items: center;
-				gap: 8px 18px;
-				background: linear-gradient(90deg, #11463485, #0c352766);
-				border: 1px solid #ffffff1f;
-				border-left: 3px solid var(--gold);
-				border-radius: 12px;
-				padding: 12px 16px;
-				margin: 0 0 18px;
-				font-size: 14px;
-			}
-			.recap-label {
-				color: var(--gold);
-				font-weight: 700;
-				text-transform: uppercase;
-				font-size: 12px;
-				letter-spacing: 0.8px;
-			}
-			.recap-meta {
-				color: var(--muted);
-			}
-			.recap-win {
-				color: var(--win);
-				font-weight: 700;
-			}
-			.recap-loss {
-				color: var(--loss);
-				font-weight: 700;
-			}
-			.form {
-				display: inline-flex;
-				gap: 3px;
-			}
-			.fd {
-				width: 9px;
-				height: 9px;
-				border-radius: 50%;
-				display: inline-block;
-			}
-			.fd.win {
-				background: var(--win);
-			}
-			.fd.loss {
-				background: var(--loss);
-			}
-			.fd.flat {
-				background: #7d8b84;
-			}
-			.filterbar {
-				display: flex;
-				align-items: center;
-				gap: 10px;
-				margin: 0 0 18px;
-				flex-wrap: wrap;
-			}
-			.filterbar .lbl {
-				color: var(--muted);
-				font-size: 12px;
-				text-transform: uppercase;
-				letter-spacing: 0.8px;
-			}
+
+			/* segmented controls */
 			.seg {
 				display: inline-flex;
-				background: #0c3527;
-				border: 1px solid #ffffff1f;
-				border-radius: 10px;
+				background: rgba(0, 0, 0, 0.25);
+				border: 1px solid var(--border);
+				border-radius: 11px;
 				padding: 3px;
-				gap: 3px;
+				gap: 2px;
 			}
 			.seg button {
 				appearance: none;
 				border: 0;
 				background: transparent;
 				color: var(--muted);
-				font: inherit;
-				font-size: 13px;
-				font-weight: 600;
+				font-family: var(--mono);
+				font-size: 12px;
+				font-weight: 500;
+				letter-spacing: 0.03em;
 				padding: 7px 14px;
 				border-radius: 8px;
 				cursor: pointer;
@@ -363,31 +127,365 @@
 				color: var(--ink);
 			}
 			.seg button.active {
-				background: var(--gold);
-				color: #1a1205;
+				background: var(--teal);
+				color: #06231b;
+				font-weight: 600;
 			}
-			.err {
-				background: #5a1d1d;
-				border: 1px solid #e06c75;
-				color: #ffd7d7;
-				padding: 14px;
-				border-radius: 10px;
+			.langseg button {
+				padding: 6px 12px;
+			}
+
+			/* filter bar */
+			.filterbar {
+				display: flex;
+				align-items: center;
+				gap: 12px;
+				margin: 0 0 20px;
+				flex-wrap: wrap;
+			}
+			.filterbar .lbl {
+				display: inline-flex;
+				align-items: center;
+				gap: 7px;
+				color: var(--muted);
+				font-family: var(--mono);
+				font-size: 11px;
+				text-transform: uppercase;
+				letter-spacing: 0.12em;
+			}
+
+			/* recap banner */
+			#recap:empty {
+				display: none;
+			}
+			.recap-inner {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				gap: 8px 22px;
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-left: 3px solid var(--teal);
+				border-radius: 13px;
+				padding: 13px 18px;
+				margin: 0 0 22px;
+				font-size: 14px;
+			}
+			.recap-label {
+				display: inline-flex;
+				align-items: center;
+				gap: 7px;
+				color: var(--teal);
+				font-family: var(--mono);
+				font-weight: 600;
+				text-transform: uppercase;
+				font-size: 11px;
+				letter-spacing: 0.12em;
+			}
+			.recap-meta {
+				color: var(--muted);
+				font-family: var(--mono);
+				font-size: 12.5px;
+			}
+			.recap-win {
+				color: var(--green);
+				font-weight: 600;
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+			}
+			.recap-loss {
+				color: var(--coral);
+				font-weight: 600;
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+			}
+
+			/* award cards */
+			.cards {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+				gap: 14px;
+				margin-bottom: 24px;
+			}
+			.stat {
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: 14px;
+				padding: 16px 18px;
+			}
+			.stat .label {
+				display: inline-flex;
+				align-items: center;
+				gap: 7px;
+				color: var(--muted);
+				font-family: var(--mono);
+				font-size: 10.5px;
+				text-transform: uppercase;
+				letter-spacing: 0.13em;
+			}
+			.stat .label .ic {
+				width: 14px;
+				height: 14px;
+				color: var(--teal);
+			}
+			.stat .who {
+				color: var(--ink);
+				font-size: 17px;
+				font-weight: 600;
+				margin-top: 13px;
+			}
+			.stat .big {
+				font-family: var(--mono);
+				font-size: 22px;
+				font-weight: 600;
+				margin-top: 3px;
+				letter-spacing: -0.01em;
+			}
+			.stat .big.pos {
+				color: var(--gold);
+			}
+			.stat .big.neg {
+				color: var(--coral);
+			}
+			.stat .big.gold {
+				color: var(--teal);
+			}
+
+			/* panels */
+			.panel {
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: 16px;
+				padding: 20px;
+				margin-bottom: 22px;
+			}
+			.panel h2 {
+				display: flex;
+				align-items: center;
+				gap: 9px;
+				font-size: 16px;
+				font-weight: 700;
+				margin-bottom: 16px;
+			}
+			.panel h2 .ic {
+				width: 18px;
+				height: 18px;
+				color: var(--teal);
+			}
+
+			/* tables */
+			#leaderboard,
+			#sessions {
+				overflow-x: auto;
+				-webkit-overflow-scrolling: touch;
+			}
+			table {
+				width: 100%;
+				border-collapse: collapse;
+				font-size: 14px;
+			}
+			th,
+			td {
+				text-align: left;
+				padding: 11px 12px;
+				white-space: nowrap;
+				border-bottom: 1px solid var(--border);
+			}
+			thead th {
+				color: var(--muted);
+				font-family: var(--mono);
+				font-weight: 500;
+				font-size: 10.5px;
+				text-transform: uppercase;
+				letter-spacing: 0.1em;
+				border-bottom: 1px solid var(--border2);
+			}
+			tbody tr:last-child td {
+				border-bottom: 0;
+			}
+			tbody tr:hover {
+				background: rgba(255, 255, 255, 0.02);
+			}
+			td.num,
+			th.num {
+				text-align: right;
+				font-family: var(--mono);
+				font-variant-numeric: tabular-nums;
+			}
+			.rank {
+				color: var(--dim);
+				font-family: var(--mono);
+				width: 34px;
+				font-size: 13px;
+			}
+			tbody tr:first-child .rank {
+				color: var(--gold);
+			}
+			td.player {
+				font-weight: 600;
+			}
+			.pos {
+				color: var(--green);
+			}
+			.neg {
+				color: var(--coral);
+			}
+			.gold {
+				color: var(--gold);
+			}
+			.ok {
+				color: var(--green);
+				display: inline-flex;
+				align-items: center;
+				gap: 5px;
+			}
+			.off {
+				color: var(--coral);
+				font-weight: 600;
+				display: inline-flex;
+				align-items: center;
+				gap: 5px;
+			}
+			.ok .ic,
+			.off .ic {
+				width: 14px;
+				height: 14px;
+			}
+
+			/* form dots */
+			.form {
+				display: inline-flex;
+				gap: 4px;
+			}
+			.fd {
+				width: 9px;
+				height: 9px;
+				border-radius: 50%;
+				display: inline-block;
+			}
+			.fd.win {
+				background: var(--green);
+			}
+			.fd.loss {
+				background: var(--coral);
+			}
+			.fd.flat {
+				background: var(--dim);
+			}
+
+			/* charts */
+			.chartbox {
+				position: relative;
+				height: 300px;
+			}
+			.grid2 {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 22px;
+			}
+
+			/* records + footer */
+			.records {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 8px;
+				flex-wrap: wrap;
+				color: var(--muted);
+				font-size: 13px;
+				margin: 6px 0 0;
+			}
+			.records .ic {
+				width: 15px;
+				height: 15px;
+				color: var(--teal);
+			}
+			.records b {
+				color: var(--ink);
+				font-weight: 600;
+			}
+			.records .up {
+				color: var(--green);
+			}
+			.records .down {
+				color: var(--coral);
 			}
 			.foot {
-				color: var(--muted);
-				font-size: 12px;
+				color: var(--dim);
+				font-family: var(--mono);
+				font-size: 11px;
 				text-align: center;
-				margin-top: 20px;
+				margin-top: 22px;
+				line-height: 1.7;
 			}
 			.credit {
 				opacity: 0.6;
-				font-size: 11px;
+				font-size: 10px;
 			}
 			a {
-				color: var(--gold);
+				color: var(--teal);
 			}
-			.medal {
-				margin-right: 4px;
+			.err {
+				background: rgba(224, 146, 139, 0.12);
+				border: 1px solid var(--coral);
+				color: #f4d4d1;
+				padding: 14px;
+				border-radius: 12px;
+			}
+
+			/* scrollbar */
+			::-webkit-scrollbar {
+				height: 7px;
+				width: 7px;
+			}
+			::-webkit-scrollbar-thumb {
+				background: rgba(255, 255, 255, 0.14);
+				border-radius: 7px;
+			}
+
+			/* responsive */
+			@media (max-width: 760px) {
+				.grid2 {
+					grid-template-columns: 1fr;
+				}
+			}
+			@media (max-width: 600px) {
+				.wrap {
+					padding: 20px 13px 48px;
+				}
+				h1 {
+					font-size: 23px;
+				}
+				.cards {
+					grid-template-columns: 1fr 1fr;
+					gap: 10px;
+				}
+				.stat {
+					padding: 13px 14px;
+				}
+				.stat .big {
+					font-size: 20px;
+				}
+				.panel {
+					padding: 15px 13px;
+				}
+				.chartbox {
+					height: 260px;
+				}
+				table {
+					font-size: 13px;
+				}
+				th,
+				td {
+					padding: 9px 9px;
+				}
+			}
+			@media (max-width: 400px) {
+				.cards {
+					grid-template-columns: 1fr;
+				}
 			}
 		</style>
 	</head>
@@ -400,7 +498,7 @@
 					alt="Poker Night logo"
 					onerror="this.remove();var f=document.getElementById('logoFallback');if(f)f.style.display='inline-block';"
 				/>
-				<span class="logo emoji" id="logoFallback" style="display: none">🃏</span>
+				<span class="logo emoji" id="logoFallback" style="display: none"><span data-icon="spade"></span></span>
 				<div>
 					<h1>Poker Night <span class="chip" data-i18n="standings">Standings</span></h1>
 					<p class="sub" id="subtitle" data-i18n="loading">Loading live results…</p>
@@ -416,7 +514,7 @@
 			<div id="recap"></div>
 
 			<div class="filterbar">
-				<span class="lbl" data-i18n="view">View</span>
+				<span class="lbl"><span data-icon="eye"></span> <span data-i18n="view">View</span></span>
 				<div class="seg" id="viewSeg">
 					<button type="button" data-mode="main" class="active" data-i18n="main">
 						Main group
@@ -428,23 +526,23 @@
 			<div class="cards" id="statCards"></div>
 
 			<div class="panel">
-				<h2 data-i18n="lb_title">Leaderboard — all-time net</h2>
+				<h2><span data-icon="trophy"></span> <span data-i18n="lb_title">Leaderboard — all-time net</span></h2>
 				<div id="leaderboard"></div>
 			</div>
 
 			<div class="grid2">
 				<div class="panel">
-					<h2 data-i18n="chart_net">Net profit by player</h2>
+					<h2><span data-icon="bar-chart"></span> <span data-i18n="chart_net">Net profit by player</span></h2>
 					<div class="chartbox"><canvas id="netChart"></canvas></div>
 				</div>
 				<div class="panel">
-					<h2 data-i18n="chart_cum">Cumulative standings over time</h2>
+					<h2><span data-icon="trending-up"></span> <span data-i18n="chart_cum">Cumulative standings over time</span></h2>
 					<div class="chartbox"><canvas id="cumChart"></canvas></div>
 				</div>
 			</div>
 
 			<div class="panel">
-				<h2 data-i18n="sessions_title">Session check — totals must equal buy-in × players</h2>
+				<h2><span data-icon="circle-check"></span> <span data-i18n="sessions_title">Session check — totals must equal buy-in × players</span></h2>
 				<div id="sessions"></div>
 			</div>
 
@@ -626,6 +724,9 @@
 				});
 			}
 
+			const ICONS = {"crown":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z\"/><path d=\"M5 21h14\"/></svg>","trending-down":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M16 17h6v-6\"/><path d=\"m22 17-8.5-8.5-5 5L2 7\"/></svg>","flame":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4\"/></svg>","target":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><circle cx=\"12\" cy=\"12\" r=\"6\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/></svg>","trophy":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978\"/><path d=\"M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978\"/><path d=\"M18 9h1.5a1 1 0 0 0 0-5H18\"/><path d=\"M4 22h16\"/><path d=\"M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z\"/><path d=\"M6 9H4.5a1 1 0 0 1 0-5H6\"/></svg>","bar-chart":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M3 3v16a2 2 0 0 0 2 2h16\"/><path d=\"M18 17V9\"/><path d=\"M13 17V5\"/><path d=\"M8 17v-3\"/></svg>","trending-up":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M16 7h6v6\"/><path d=\"m22 7-8.5 8.5-5-5L2 17\"/></svg>","circle-check":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m9 12 2 2 4-4\"/></svg>","calendar":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M8 2v4\"/><path d=\"M16 2v4\"/><rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\"/><path d=\"M3 10h18\"/></svg>","award":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526\"/><circle cx=\"12\" cy=\"8\" r=\"6\"/></svg>","eye":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg>","triangle-alert":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>","spade":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M12 18v4\"/><path d=\"M2 14.499a5.5 5.5 0 0 0 9.591 3.675.6.6 0 0 1 .818.001A5.5 5.5 0 0 0 22 14.5c0-2.29-1.5-4-3-5.5l-5.492-5.312a2 2 0 0 0-3-.02L5 8.999c-1.5 1.5-3 3.2-3 5.5\"/></svg>"};
+			function icon(n){ return ICONS[n] || ''; }
+			function hydrateIconAttrs(){ document.querySelectorAll('[data-icon]').forEach(function(el){ el.innerHTML = icon(el.getAttribute('data-icon')); }); }
 			const money = (n) =>
 				(n < 0 ? '-$' : '$') +
 				Math.abs(n).toLocaleString('en-US', {
@@ -695,14 +796,14 @@
 			}
 
 			const palette = [
-				'#e8c372',
-				'#3fb27f',
-				'#5aa9e6',
-				'#e06c75',
-				'#c39bd3',
-				'#f5a35c',
-				'#7ed6c1',
-				'#d6c97e',
+				'#56c9a6',
+				'#5fcf9e',
+				'#7fb0e0',
+				'#e0928b',
+				'#c2a3d6',
+				'#e0a96d',
+				'#79c7c9',
+				'#cdbf86',
 				'#9ec1ff',
 				'#ff9bb3',
 			];
@@ -833,7 +934,6 @@
 				// stat cards
 				const top = list[0],
 					bottom = list[list.length - 1];
-				const medals = ['🥇', '🥈', '🥉'];
 				const hot = list.reduce(
 					(b, p) => (p.streak > (b ? b.streak : 0) ? p : b),
 					null
@@ -849,10 +949,10 @@
 					: null;
 				const pct = (x) => Math.round(x * 100) + '%';
 				document.getElementById('statCards').innerHTML = `
-    <div class="stat"><div class="label">👑 ${t('champion')}</div><div class="who">${esc(top.name)}</div><div class="big pos">${signed(top.net)}</div></div>
-    <div class="stat"><div class="label">💀 ${t('biggest_loser')}</div><div class="who">${esc(bottom.name)}</div><div class="big neg">${signed(bottom.net)}</div></div>
-    <div class="stat"><div class="label">🔥 ${t('hot_streak')}</div><div class="who">${hot && hot.streak > 0 ? esc(hot.name) : '—'}</div><div class="big gold">${hot && hot.streak > 0 ? hot.streak + ' ' + (hot.streak === 1 ? t('win_one') : t('win_many')) : t('no_streak')}</div></div>
-    <div class="stat"><div class="label">🪨 ${t('most_consistent')}</div><div class="who">${rock ? esc(rock.name) : '—'}</div><div class="big gold">${rock ? pct(rock.winRate) + ' ' + t('winrate_word') : t('need_games')}</div></div>`;
+    <div class="stat"><div class="label">${icon('crown')} ${t('champion')}</div><div class="who">${esc(top.name)}</div><div class="big pos">${signed(top.net)}</div></div>
+    <div class="stat"><div class="label">${icon('trending-down')} ${t('biggest_loser')}</div><div class="who">${esc(bottom.name)}</div><div class="big neg">${signed(bottom.net)}</div></div>
+    <div class="stat"><div class="label">${icon('flame')} ${t('hot_streak')}</div><div class="who">${hot && hot.streak > 0 ? esc(hot.name) : '—'}</div><div class="big gold">${hot && hot.streak > 0 ? hot.streak + ' ' + (hot.streak === 1 ? t('win_one') : t('win_many')) : t('no_streak')}</div></div>
+    <div class="stat"><div class="label">${icon('target')} ${t('most_consistent')}</div><div class="who">${rock ? esc(rock.name) : '—'}</div><div class="big gold">${rock ? pct(rock.winRate) + ' ' + t('winrate_word') : t('need_games')}</div></div>`;
 
 				// table
 				let html = `<table><thead><tr><th class="rank">#</th><th>${t(
@@ -865,10 +965,8 @@
 				)}</th>
     <th class="num">${t('col_net')}</th></tr></thead><tbody>`;
 				list.forEach((p, i) => {
-					html += `<tr><td class="rank">${
-						i < 3 ? '<span class="medal">' + medals[i] + '</span>' : i + 1
-					}</td>
-      <td>${esc(p.name)}</td>
+					html += `<tr><td class="rank">${i + 1}</td>
+      <td class="player">${esc(p.name)}</td>
       <td>${formHtml(p.rows)}</td>
       <td class="num">${p.sessions}</td>
       <td class="num">${pct(p.winRate)}</td>
@@ -895,7 +993,7 @@
 							{
 								data: list.map((p) => p.net),
 								backgroundColor: list.map((p) =>
-									p.net >= 0 ? '#3fb27f' : '#e06c75'
+									p.net >= 0 ? '#5fcf9e' : '#e0928b'
 								),
 								borderRadius: 6,
 							},
@@ -909,10 +1007,10 @@
 							tooltip: { callbacks: { label: (c) => signed(c.raw) } },
 						},
 						scales: {
-							x: { ticks: { color: '#cfe0d8' }, grid: { display: false } },
+							x: { ticks: { color: '#86a298' }, grid: { display: false } },
 							y: {
-								ticks: { color: '#cfe0d8', callback: (v) => money(v) },
-								grid: { color: '#ffffff14' },
+								ticks: { color: '#86a298', callback: (v) => money(v) },
+								grid: { color: 'rgba(255,255,255,0.06)' },
 							},
 						},
 					},
@@ -957,7 +1055,9 @@
 						ok ? '—' : signed(diff)
 					}</td>
       <td class="${ok ? 'ok' : 'off'}">${
-						ok ? '✅ ' + t('status_ok') : '⚠️ ' + t('status_off')
+						ok
+							? icon('circle-check') + ' ' + t('status_ok')
+							: icon('triangle-alert') + ' ' + t('status_off')
 					}</td></tr>`;
 				});
 				document.getElementById('sessions').innerHTML =
@@ -1017,7 +1117,7 @@
 						maintainAspectRatio: false,
 						interaction: { mode: 'nearest', intersect: false },
 						plugins: {
-							legend: { labels: { color: '#cfe0d8', boxWidth: 12 } },
+							legend: { labels: { color: '#86a298', boxWidth: 12 } },
 							tooltip: {
 								callbacks: {
 									label: (c) => `${c.dataset.label}: ${signed(c.raw)}`,
@@ -1026,12 +1126,12 @@
 						},
 						scales: {
 							x: {
-								ticks: { color: '#cfe0d8' },
-								grid: { color: '#ffffff10' },
+								ticks: { color: '#86a298' },
+								grid: { color: 'rgba(255,255,255,0.05)' },
 							},
 							y: {
-								ticks: { color: '#cfe0d8', callback: (v) => money(v) },
-								grid: { color: '#ffffff14' },
+								ticks: { color: '#86a298', callback: (v) => money(v) },
+								grid: { color: 'rgba(255,255,255,0.06)' },
 							},
 						},
 					},
@@ -1070,7 +1170,7 @@
 					if (e.net < worst.net) worst = e;
 				});
 				el.innerHTML =
-					`🏅 ${t('records_word')} — ${t('biggest_win')}: <b>${esc(
+					`${icon('award')} ${t('records_word')} — ${t('biggest_win')}: <b>${esc(
 						best.name
 					)}</b> ` +
 					`<span class="up">${signed(best.net)}</span> (${esc(best.date)}) · ` +
@@ -1109,12 +1209,12 @@
 							day: 'numeric',
 					  });
 				el.innerHTML = `<div class="recap-inner">
-          <span class="recap-label">🃏 ${t('last_session')}</span>
+          <span class="recap-label">${icon('calendar')} ${t('last_session')}</span>
           <span class="recap-meta">${esc(dateLabel)} · ${t('session_word')} ${
 					last[0].session
 				} · ${last.length} ${t('players_word')}</span>
-          <span class="recap-win">🏆 ${esc(w.name)} ${signed(w.net)}</span>
-          <span class="recap-loss">💀 ${esc(l.name)} ${signed(l.net)}</span>
+          <span class="recap-win">${icon('trophy')} ${esc(w.name)} ${signed(w.net)}</span>
+          <span class="recap-loss">${icon('trending-down')} ${esc(l.name)} ${signed(l.net)}</span>
         </div>`;
 			}
 
@@ -1156,7 +1256,8 @@
 				if (allEntries.length) render();
 			});
 
-			// Initial language paint (before data arrives).
+			// Initial paint: static icons + language (before data arrives).
+			hydrateIconAttrs();
 			setLangButtons();
 			applyStaticI18n();
 
