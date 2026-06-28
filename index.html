@@ -68,6 +68,10 @@
 				margin: 0 0 26px;
 				flex-wrap: wrap;
 			}
+			.brand-text {
+				flex: 1 1 0;
+				min-width: 0;
+			}
 			.brand .logo {
 				width: 52px;
 				height: 52px;
@@ -525,7 +529,7 @@
 					onerror="this.remove();var f=document.getElementById('logoFallback');if(f)f.style.display='inline-block';"
 				/>
 				<span class="logo emoji" id="logoFallback" style="display: none"><span data-icon="spade"></span></span>
-				<div>
+				<div class="brand-text">
 					<h1>Poker Night <span class="chip" data-i18n="standings">Standings</span></h1>
 					<p class="sub" id="subtitle" data-i18n="loading">Loading live results…</p>
 				</div>
