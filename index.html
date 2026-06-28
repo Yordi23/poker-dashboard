@@ -4,7 +4,7 @@
 		<meta charset="utf-8" />
 		<meta
 			name="viewport"
-			content="width=device-width, initial-scale=1"
+			content="width=device-width, initial-scale=1, viewport-fit=cover"
 		/>
 		<title>Poker Night — Standings</title>
 		<meta
@@ -66,6 +66,9 @@
 				margin: 0;
 				padding: 0;
 			}
+			html {
+				background: #082822; /* fills safe-area insets / overscroll */
+			}
 			body {
 				font-family: var(--sans);
 				color: var(--ink);
@@ -84,7 +87,8 @@
 			.wrap {
 				max-width: 1080px;
 				margin: 0 auto;
-				padding: 30px 20px 64px;
+				padding: 30px max(20px, env(safe-area-inset-right)) 64px
+					max(20px, env(safe-area-inset-left));
 			}
 			.ic {
 				width: 16px;
@@ -507,7 +511,8 @@
 			}
 			@media (max-width: 600px) {
 				.wrap {
-					padding: 20px 13px 48px;
+					padding: 20px max(13px, env(safe-area-inset-right)) 48px
+						max(13px, env(safe-area-inset-left));
 				}
 				h1 {
 					font-size: 23px;
