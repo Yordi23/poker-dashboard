@@ -162,14 +162,27 @@
 				display: flex;
 				flex-wrap: wrap;
 				align-items: center;
-				gap: 8px 22px;
+				gap: 8px 18px;
 				background: var(--surface);
-				border: 1px solid var(--border);
-				border-left: 3px solid var(--teal);
-				border-radius: 13px;
+				border: 1px solid rgba(86, 201, 166, 0.2);
+				border-radius: 12px;
 				padding: 13px 18px;
 				margin: 0 0 22px;
 				font-size: 14px;
+			}
+			.recap-results {
+				margin-left: auto;
+				display: inline-flex;
+				gap: 18px;
+				flex-wrap: wrap;
+				font-size: 13px;
+			}
+			.recap-res .rw {
+				color: var(--dim);
+			}
+			.recap-res b {
+				font-weight: 600;
+				color: var(--ink);
 			}
 			.recap-label {
 				display: inline-flex;
@@ -190,16 +203,12 @@
 			.recap-win {
 				color: var(--green);
 				font-weight: 600;
-				display: inline-flex;
-				align-items: center;
-				gap: 6px;
+				font-family: var(--mono);
 			}
 			.recap-loss {
 				color: var(--coral);
 				font-weight: 600;
-				display: inline-flex;
-				align-items: center;
-				gap: 6px;
+				font-family: var(--mono);
 			}
 
 			/* award cards */
@@ -244,7 +253,7 @@
 				letter-spacing: -0.01em;
 			}
 			.stat .big.pos {
-				color: var(--gold);
+				color: var(--green);
 			}
 			.stat .big.neg {
 				color: var(--coral);
@@ -352,6 +361,13 @@
 			.off .ic {
 				width: 14px;
 				height: 14px;
+			}
+			.sdot {
+				width: 6px;
+				height: 6px;
+				border-radius: 50%;
+				background: currentColor;
+				display: inline-block;
 			}
 
 			/* form dots */
@@ -632,6 +648,8 @@
 					col_net: 'Neto',
 					no_players: 'Aún no hay jugadores en esta vista.',
 					last_session: 'Última sesión',
+					winner_word: 'Ganó',
+					loser_word: 'Perdió',
 					session_word: 'Sesión',
 					players_word: 'jugadores',
 					sessions_word: 'sesiones',
@@ -682,6 +700,8 @@
 					col_net: 'Net profit',
 					no_players: 'No players in this view yet.',
 					last_session: 'Last session',
+					winner_word: 'Won',
+					loser_word: 'Lost',
 					session_word: 'Session',
 					players_word: 'players',
 					sessions_word: 'sessions',
@@ -727,12 +747,17 @@
 			const ICONS = {"crown":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z\"/><path d=\"M5 21h14\"/></svg>","trending-down":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M16 17h6v-6\"/><path d=\"m22 17-8.5-8.5-5 5L2 7\"/></svg>","flame":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4\"/></svg>","target":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><circle cx=\"12\" cy=\"12\" r=\"6\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/></svg>","trophy":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978\"/><path d=\"M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978\"/><path d=\"M18 9h1.5a1 1 0 0 0 0-5H18\"/><path d=\"M4 22h16\"/><path d=\"M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z\"/><path d=\"M6 9H4.5a1 1 0 0 1 0-5H6\"/></svg>","bar-chart":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M3 3v16a2 2 0 0 0 2 2h16\"/><path d=\"M18 17V9\"/><path d=\"M13 17V5\"/><path d=\"M8 17v-3\"/></svg>","trending-up":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M16 7h6v6\"/><path d=\"m22 7-8.5 8.5-5-5L2 17\"/></svg>","circle-check":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m9 12 2 2 4-4\"/></svg>","calendar":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M8 2v4\"/><path d=\"M16 2v4\"/><rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\"/><path d=\"M3 10h18\"/></svg>","award":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526\"/><circle cx=\"12\" cy=\"8\" r=\"6\"/></svg>","eye":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg>","triangle-alert":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>","spade":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ic\"><path d=\"M12 18v4\"/><path d=\"M2 14.499a5.5 5.5 0 0 0 9.591 3.675.6.6 0 0 1 .818.001A5.5 5.5 0 0 0 22 14.5c0-2.29-1.5-4-3-5.5l-5.492-5.312a2 2 0 0 0-3-.02L5 8.999c-1.5 1.5-3 3.2-3 5.5\"/></svg>"};
 			function icon(n){ return ICONS[n] || ''; }
 			function hydrateIconAttrs(){ document.querySelectorAll('[data-icon]').forEach(function(el){ el.innerHTML = icon(el.getAttribute('data-icon')); }); }
-			const money = (n) =>
-				(n < 0 ? '-$' : '$') +
-				Math.abs(n).toLocaleString('en-US', {
-					minimumFractionDigits: 2,
-					maximumFractionDigits: 2,
-				});
+			const money = (n) => {
+				const a = Math.abs(n);
+				const dec = Number.isInteger(a) ? 0 : 2; // no .00 on whole numbers
+				return (
+					(n < 0 ? '-$' : '$') +
+					a.toLocaleString('en-US', {
+						minimumFractionDigits: dec,
+						maximumFractionDigits: dec,
+					})
+				);
+			};
 			const signed = (n) => (n > 0 ? '+' : '') + money(n);
 
 			function csvUrl(sheet) {
@@ -982,6 +1007,22 @@
 			}
 
 			let netChart;
+			// Draws the net value above/below each bar (v2 style) and no y-axis.
+			const barLabels = {
+				afterDatasetsDraw(chart) {
+					const ctx = chart.ctx;
+					const meta = chart.getDatasetMeta(0);
+					ctx.save();
+					ctx.font = "600 11px 'JetBrains Mono', monospace";
+					ctx.textAlign = 'center';
+					meta.data.forEach((bar, i) => {
+						const v = chart.data.datasets[0].data[i];
+						ctx.fillStyle = v >= 0 ? '#5fcf9e' : '#e0928b';
+						ctx.fillText(signed(v), bar.x, v >= 0 ? bar.y - 7 : bar.y + 16);
+					});
+					ctx.restore();
+				},
+			};
 			function drawBar(list) {
 				const ctx = document.getElementById('netChart');
 				if (netChart) netChart.destroy();
@@ -1002,18 +1043,17 @@
 					options: {
 						responsive: true,
 						maintainAspectRatio: false,
+						layout: { padding: { top: 22, bottom: 6 } },
 						plugins: {
 							legend: { display: false },
 							tooltip: { callbacks: { label: (c) => signed(c.raw) } },
 						},
 						scales: {
 							x: { ticks: { color: '#86a298' }, grid: { display: false } },
-							y: {
-								ticks: { color: '#86a298', callback: (v) => money(v) },
-								grid: { color: 'rgba(255,255,255,0.06)' },
-							},
+							y: { display: false },
 						},
 					},
+					plugins: [barLabels],
 				});
 			}
 
@@ -1056,8 +1096,8 @@
 					}</td>
       <td class="${ok ? 'ok' : 'off'}">${
 						ok
-							? icon('circle-check') + ' ' + t('status_ok')
-							: icon('triangle-alert') + ' ' + t('status_off')
+							? '<span class="sdot"></span> ' + t('status_ok')
+							: '<span class="sdot"></span> ' + t('status_off')
 					}</td></tr>`;
 				});
 				document.getElementById('sessions').innerHTML =
@@ -1213,8 +1253,15 @@
           <span class="recap-meta">${esc(dateLabel)} · ${t('session_word')} ${
 					last[0].session
 				} · ${last.length} ${t('players_word')}</span>
-          <span class="recap-win">${icon('trophy')} ${esc(w.name)} ${signed(w.net)}</span>
-          <span class="recap-loss">${icon('trending-down')} ${esc(l.name)} ${signed(l.net)}</span>
+          <span class="recap-results"><span class="recap-res"><span class="rw">${t(
+						'winner_word'
+					)}</span> <b>${esc(w.name)}</b> <span class="recap-win">${signed(
+					w.net
+				)}</span></span><span class="recap-res"><span class="rw">${t(
+						'loser_word'
+					)}</span> <b>${esc(l.name)}</b> <span class="recap-loss">${signed(
+					l.net
+				)}</span></span></span>
         </div>`;
 			}
 
