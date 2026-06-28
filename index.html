@@ -329,8 +329,8 @@
 				width: 34px;
 				font-size: 13px;
 			}
-			tbody tr:first-child .rank {
-				color: var(--gold);
+			tbody tr:nth-child(-n + 3) .rank {
+				color: var(--green);
 			}
 			td.player {
 				font-weight: 600;
@@ -376,9 +376,9 @@
 				gap: 4px;
 			}
 			.fd {
-				width: 9px;
-				height: 9px;
-				border-radius: 50%;
+				width: 10px;
+				height: 10px;
+				border-radius: 3px;
 				display: inline-block;
 			}
 			.fd.win {
@@ -995,7 +995,7 @@
       <td>${formHtml(p.rows)}</td>
       <td class="num">${p.sessions}</td>
       <td class="num">${pct(p.winRate)}</td>
-      <td class="num ${p.avg >= 0 ? 'pos' : 'neg'}">${signed(p.avg)}</td>
+      <td class="num ${p.avg >= 0 ? 'pos' : 'neg'}">${signed(Math.round(p.avg))}</td>
       <td class="num ${p.net >= 0 ? 'pos' : 'neg'}">${signed(
 						p.net
 					)}</td></tr>`;
@@ -1091,14 +1091,10 @@
       <td class="num">${money(s.total)}</td><td class="num">${money(
 						expected
 					)}</td>
-      <td class="num ${ok ? '' : 'off'}">${
-						ok ? '—' : signed(diff)
-					}</td>
-      <td class="${ok ? 'ok' : 'off'}">${
-						ok
-							? '<span class="sdot"></span> ' + t('status_ok')
-							: '<span class="sdot"></span> ' + t('status_off')
-					}</td></tr>`;
+      <td class="num ${ok ? '' : 'neg'}">${ok ? '—' : signed(diff)}</td>
+      <td><span class="${ok ? 'ok' : 'off'}"><span class="sdot"></span> ${
+						ok ? t('status_ok') : t('status_off')
+					}</span></td></tr>`;
 				});
 				document.getElementById('sessions').innerHTML =
 					html + '</tbody></table>';
