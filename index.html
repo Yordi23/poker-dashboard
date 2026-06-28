@@ -494,6 +494,80 @@
 				margin-top: 7px;
 				line-height: 1.4;
 			}
+
+			/* Results by night */
+			.day-select {
+				margin-left: auto;
+				background: rgba(0, 0, 0, 0.25);
+				color: var(--ink);
+				border: 1px solid var(--border);
+				border-radius: 9px;
+				padding: 6px 10px;
+				font-family: var(--mono);
+				font-size: 12px;
+				cursor: pointer;
+			}
+			.day-select:focus {
+				outline: 1px solid var(--teal);
+			}
+			.day-sess {
+				margin-top: 18px;
+			}
+			.day-sess:first-child {
+				margin-top: 2px;
+			}
+			.day-sess-head {
+				display: flex;
+				align-items: center;
+				gap: 8px 14px;
+				flex-wrap: wrap;
+				padding-bottom: 8px;
+				margin-bottom: 4px;
+				border-bottom: 1px solid var(--border2);
+			}
+			.ds-title {
+				font-weight: 700;
+				font-size: 14px;
+			}
+			.ds-meta {
+				color: var(--muted);
+				font-family: var(--mono);
+				font-size: 12px;
+			}
+			.day-sess-head .ok,
+			.day-sess-head .off {
+				margin-left: auto;
+			}
+			.day-row {
+				display: grid;
+				grid-template-columns: 26px 1fr auto auto;
+				gap: 12px;
+				align-items: center;
+				padding: 7px 2px;
+				border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+				font-size: 14px;
+			}
+			.day-row:last-child {
+				border-bottom: 0;
+			}
+			.dr-rank {
+				color: var(--dim);
+				font-family: var(--mono);
+				font-size: 12px;
+			}
+			.dr-name {
+				font-weight: 600;
+			}
+			.dr-end {
+				color: var(--muted);
+				font-family: var(--mono);
+				text-align: right;
+			}
+			.dr-net {
+				font-family: var(--mono);
+				font-weight: 600;
+				text-align: right;
+			}
 			.foot {
 				color: var(--dim);
 				font-family: var(--mono);
@@ -644,6 +718,15 @@
 				<div id="sessions"></div>
 			</div>
 
+			<div class="panel">
+				<h2>
+					<span data-icon="calendar"></span>
+					<span data-i18n="results_title">Results by night</span>
+					<select id="daySel" class="day-select"></select>
+				</h2>
+				<div id="dayDetail"></div>
+			</div>
+
 			<p class="foot">
 				<span data-i18n="footer_refresh"
 					>Auto-refreshes from your Google Sheet. Last updated</span
@@ -687,6 +770,7 @@
 
 			let viewMode = 'main'; // 'main' | 'all'
 			let allEntries = []; // every parsed row, kept so the toggle is instant
+			let selectedDay = null; // selected date in the "Results by night" panel
 
 			/* ---- Language (default Spanish, remembered in localStorage) ---- */
 			let lang = (function () {
@@ -709,6 +793,7 @@
 					chart_cum: 'Evolución acumulada',
 					sessions_title:
 						'Control de sesiones — el total debe ser entrada × jugadores',
+					results_title: 'Resultados por noche',
 					footer_refresh:
 						'Se actualiza solo desde tu Google Sheet. Última actualización',
 					champion: 'Campeón',
@@ -772,6 +857,7 @@
 					chart_cum: 'Cumulative standings over time',
 					sessions_title:
 						'Session check — totals must equal buy-in × players',
+					results_title: 'Results by night',
 					footer_refresh: 'Auto-refreshes from your Google Sheet. Last updated',
 					champion: 'Champion',
 					biggest_loser: 'Biggest loser',
@@ -1005,6 +1091,7 @@
 				buildCumulative(filtered);
 				buildSessions(allEntries);
 				buildRecords(filtered);
+				buildDayDetail();
 
 				document.getElementById('subtitle').textContent = `${
 					new Set(filtered.map((e) => e.name)).size
@@ -1367,6 +1454,83 @@
 					.join('');
 			}
 
+			/* "Results by night" — fills the date dropdown and renders the picked
+			   day's sessions with every player's result (filter-independent). */
+			function buildDayDetail() {
+				const sel = document.getElementById('daySel');
+				const seen = {};
+				allEntries.forEach((e) => {
+					if (!(e.date in seen)) seen[e.date] = e.t;
+				});
+				const dates = Object.keys(seen).sort((a, b) => seen[b] - seen[a]);
+				if (!dates.length) {
+					sel.innerHTML = '';
+					document.getElementById('dayDetail').innerHTML = '';
+					return;
+				}
+				if (!selectedDay || !(selectedDay in seen)) selectedDay = dates[0];
+				sel.innerHTML = dates
+					.map((d) => {
+						const dt = new Date(seen[d]);
+						const lbl = isNaN(dt.getTime())
+							? d
+							: dt.toLocaleDateString(locale(), {
+									weekday: 'short',
+									day: 'numeric',
+									month: 'short',
+							  });
+						return `<option value="${esc(d)}"${
+							d === selectedDay ? ' selected' : ''
+						}>${esc(lbl)}</option>`;
+					})
+					.join('');
+				renderDayDetail();
+			}
+
+			function renderDayDetail() {
+				const box = document.getElementById('dayDetail');
+				const by = {};
+				allEntries
+					.filter((e) => e.date === selectedDay)
+					.forEach((e) => (by[e.session] = by[e.session] || []).push(e));
+				const sessions = Object.keys(by)
+					.map(Number)
+					.sort((a, b) => a - b);
+				box.innerHTML = sessions
+					.map((sn) => {
+						const ps = by[sn].slice().sort((a, b) => b.net - a.net);
+						const total = ps.reduce((s, e) => s + e.end, 0);
+						const ok = Math.abs(total - ps.length * BUY_IN) < 0.005;
+						const rows = ps
+							.map(
+								(e, i) =>
+									`<div class="day-row"><span class="dr-rank">${
+										i + 1
+									}</span><span class="dr-name">${esc(
+										e.name
+									)}</span><span class="dr-end">${money(
+										e.end
+									)}</span><span class="dr-net ${
+										e.net >= 0 ? 'pos' : 'neg'
+									}">${signed(e.net)}</span></div>`
+							)
+							.join('');
+						return `<div class="day-sess">
+            <div class="day-sess-head">
+              <span class="ds-title">${t('s_session')} ${sn}</span>
+              <span class="ds-meta">${ps.length} ${t('players_word')} · ${money(
+							total
+						)}</span>
+              <span class="${ok ? 'ok' : 'off'}"><span class="sdot"></span> ${
+							ok ? t('status_ok') : t('status_off')
+						}</span>
+            </div>
+            <div class="day-rows">${rows}</div>
+          </div>`;
+					})
+					.join('');
+			}
+
 			/* "Last session" recap banner — the most recent (date, session),
 			   using ALL players (it's a factual snapshot of that night). */
 			function buildRecap(entries) {
@@ -1450,6 +1614,12 @@
 				setLangButtons();
 				applyStaticI18n();
 				if (allEntries.length) render();
+			});
+
+			// Results-by-night date picker — re-renders just that panel.
+			document.getElementById('daySel').addEventListener('change', (e) => {
+				selectedDay = e.target.value;
+				renderDayDetail();
 			});
 
 			// Initial paint: static icons + language (before data arrives).
