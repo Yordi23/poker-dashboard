@@ -823,7 +823,7 @@
 					biggest_win: 'Mayor victoria',
 					biggest_loss: 'Mayor derrota',
 					rec_win_d: 'Más ganado en una sola sesión',
-					rec_loss_d: 'Más perdido en una sola sesión',
+					rec_loss_d: 'Más perdido en una sola noche',
 					rec_hot_t: 'Mejor racha',
 					rec_hot_d: 'Más victorias seguidas',
 					rec_cold_t: 'Peor racha',
@@ -886,7 +886,7 @@
 					biggest_win: 'Biggest win',
 					biggest_loss: 'Biggest loss',
 					rec_win_d: 'Most won in one session',
-					rec_loss_d: 'Most lost in one session',
+					rec_loss_d: 'Most lost in one night',
 					rec_hot_t: 'Hottest run',
 					rec_hot_d: 'Most wins in a row',
 					rec_cold_t: 'Coldest run',
@@ -1386,12 +1386,22 @@
 					el.innerHTML = '';
 					return;
 				}
-				// single-session extremes
-				let best = entries[0],
-					worst = entries[0];
+				// biggest single-session win (max win isn't capped by the buy-in)
+				let best = entries[0];
 				entries.forEach((e) => {
 					if (e.net > best.net) best = e;
-					if (e.net < worst.net) worst = e;
+				});
+				// biggest loss in a single night: sum a player's net across all
+				// sessions of one date (single-session loss is capped at the buy-in)
+				const dayNet = {};
+				entries.forEach((e) => {
+					const k = e.name + '|' + e.t;
+					if (!dayNet[k]) dayNet[k] = { name: e.name, net: 0 };
+					dayNet[k].net += e.net;
+				});
+				let worst = { name: '—', net: 0 };
+				Object.values(dayNet).forEach((d) => {
+					if (d.net < worst.net) worst = d;
 				});
 				// per-player chronological history -> streaks, busts, comeback
 				const byP = {};
